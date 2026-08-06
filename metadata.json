@@ -1,0 +1,6 @@
+{
+  "name": "Motor de Cálculo Pró-Soluto (Banco Direto / Morar)",
+  "description": "Calculadora financeira corporativa para simulação de amortizações extraordinárias Pró-Soluto pela Tabela Price, gerador de pitch para WhatsApp, auditoria e relatórios.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

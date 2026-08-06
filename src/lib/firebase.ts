@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, memoryLocalCache, getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCPZ8w4FbUC2TzZpDQAyEXlqBis32TA7oE",
@@ -13,5 +13,45 @@ const firebaseConfig = {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+let firestoreDb;
+try {
+  firestoreDb = initializeFirestore(app, {
+    localCache: memoryLocalCache(),
+  });
+} catch {
+  firestoreDb = getFirestore(app);
+}
+
+export const db = firestoreDb;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = String(event.reason?.message || event.reason || '');
+    if (
+      reason.includes('Database is closing') ||
+      reason.includes('closing/hidden') ||
+      reason.includes('IndexedDB') ||
+      reason.includes('database connection is closing') ||
+      reason.includes('InternalError')
+    ) {
+      event.preventDefault();
+      console.warn('Handled background storage/database state event:', reason);
+    }
+  });
+
+  window.addEventListener('error', (event) => {
+    const message = String(event.message || '');
+    if (
+      message.includes('Database is closing') ||
+      message.includes('closing/hidden') ||
+      message.includes('IndexedDB')
+    ) {
+      event.preventDefault();
+      console.warn('Handled global database error:', message);
+    }
+  });
+}
+
 export default app;
+

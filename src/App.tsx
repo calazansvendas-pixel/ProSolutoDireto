@@ -122,7 +122,11 @@ export default function App() {
 
   const handleLoadSimulation = (simInput: SimulationInput) => {
     setInput(simInput);
-    setHasCalculated(true);
+    if (simInput.mesAmortizacaoIndex > 0 && simInput.valorAmortizacaoExtra > 0) {
+      setHasCalculated(true);
+    } else {
+      setHasCalculated(false);
+    }
     handleTabSelect('calculator');
   };
 

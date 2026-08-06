@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { CalculationResult, Development, NavigationTab, SimulationInput } from '../types';
 import {
+  calculatePMT,
   calculateTaxaDiretoAmount,
   formatBRL,
   formatPercent,
@@ -57,6 +58,8 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   const [scheduleScenario, setScheduleScenario] = useState<'A' | 'B' | 'original'>('A');
   const [proSolutoWarning, setProSolutoWarning] = useState<string | null>(null);
   const [prazoWarning, setPrazoWarning] = useState<string | null>(null);
+  const [calculatedMonthlyPmt, setCalculatedMonthlyPmt] = useState<number | null>(null);
+  const [simulationError, setSimulationError] = useState<string | null>(null);
   const recentLogs = getStoredAuditLogs().slice(0, 3);
 
   const canEditTaxa = userRole === 'admin' || userRole === 'gerente';
@@ -74,6 +77,18 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   };
 
   const currentMaxPrazo = getMaxPrazoForDev(selectedDev);
+
+  // Reset Parcela Mensal whenever any simulation parameter changes
+  useEffect(() => {
+    setCalculatedMonthlyPmt(null);
+  }, [
+    input.empreendimento,
+    input.proSolutoValor,
+    input.aliquotaDiretoPct,
+    input.taxaDiretoValor,
+    input.prazoMeses,
+    input.taxaJurosMensalPct,
+  ]);
 
   // Auto-calculate Taxa Direto when proSoluto or aliquota changes, if not manual
   useEffect(() => {
@@ -176,6 +191,14 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
     }
   };
 
+  const handleCalculateMonthlyPmt = () => {
+    const pv = (input.proSolutoValor || 0) + (input.taxaDiretoValor || 0);
+    const pmt = calculatePMT(pv, input.taxaJurosMensalPct || 0, input.prazoMeses || 0);
+    setCalculatedMonthlyPmt(pmt);
+  };
+
+  const displayPmt = calculatedMonthlyPmt !== null ? calculatedMonthlyPmt : 0;
+
   // Quick preset loader for testing
   const loadExample70k = () => {
     const example: SimulationInput = {
@@ -188,10 +211,33 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
       taxaJurosMensalPct: 1.9,
       dataInicio: '2024-01',
       dataAmortizacao: '2024-10',
-      mesAmortizacaoIndex: 10,
-      valorAmortizacaoExtra: 15000,
+      mesAmortizacaoIndex: 0,
+      valorAmortizacaoExtra: 0,
     };
     onLoadSimulation(example);
+    setCalculatedMonthlyPmt(null);
+    setSimulationError(null);
+  };
+
+  const handleSimularAgora = () => {
+    const prazoMax = input.prazoMeses || 60;
+    const isMesValid = input.mesAmortizacaoIndex >= 1 && input.mesAmortizacaoIndex <= prazoMax;
+    const isValorValid = input.valorAmortizacaoExtra > 0;
+
+    if (!isMesValid || !isValorValid) {
+      const errors: string[] = [];
+      if (!isMesValid) {
+        errors.push(`• "Mês do Aporte" deve ser preenchido (entre 1 e ${prazoMax} meses).`);
+      }
+      if (!isValorValid) {
+        errors.push('• "Valor do Aporte Extra" deve ser preenchido (maior que R$ 0,00).');
+      }
+      setSimulationError(errors.join('\n'));
+      return;
+    }
+
+    setSimulationError(null);
+    onRunSimulation();
   };
 
   const activeCronograma =
@@ -232,14 +278,14 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
           </h2>
           <button
             onClick={loadExample70k}
-            className="px-2.5 py-1 bg-emerald-100/40 hover:bg-emerald-200/50 text-emerald-700 border border-emerald-200/50 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all backdrop-blur-xs shadow-2xs"
+            className="px-2.5 py-1 bg-emerald-100/40 hover:bg-emerald-200/50 text-emerald-700 border border-emerald-200/50 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all backdrop-blur-xs shadow-2xs cursor-pointer"
           >
             <Sparkles className="w-3 h-3 text-emerald-600" />
             Carregar Exemplo (R$ 70k)
           </button>
         </div>
 
-        {/* SECTION 1: EMPREENDIMENTO & PROJETO */}
+        {/* SECTION 1: EMPREENDIMENTO / PROJETO (FULL WIDTH) */}
         <div className="space-y-2">
           <label className="block text-[10px] text-slate-600 uppercase font-bold flex items-center gap-1.5">
             <Building2 className="w-3.5 h-3.5 text-slate-500" />
@@ -267,13 +313,14 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
           </select>
         </div>
 
-        {/* SECTION 2: PARÂMETROS FINANCEIROS */}
+        {/* SUBSEÇÃO: CONDIÇÕES DO PRÓ-SOLUTO */}
         <div className="space-y-3 pt-2 border-t border-slate-200">
           <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
             <DollarSign className="w-3.5 h-3.5 text-slate-500" />
             Condições do Pró-Soluto
           </p>
 
+          {/* VALOR DO PRÓ-SOLUTO (FULL WIDTH) */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-[10px] text-slate-600 uppercase font-bold">
@@ -302,6 +349,7 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
             )}
           </div>
 
+          {/* LINHA COM 2 COLUNAS: ALÍQUOTA DIRETO (%) E TAXA DIRETO (R$) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <div className="flex items-center justify-between gap-2 min-h-[24px] mb-1">
@@ -315,12 +363,12 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
                   step="0.01"
                   min="0"
                   max="100"
-                  placeholder=""
+                  placeholder="0,00"
                   value={input.aliquotaDiretoPct || ''}
                   onChange={(e) =>
                     setInput({ ...input, aliquotaDiretoPct: parseFloat(e.target.value) || 0 })
                   }
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:border-blue-600 outline-none transition-all"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:border-blue-600 outline-none transition-all font-mono"
                 />
                 <span className="absolute right-3 top-2.5 text-xs text-slate-500 font-mono">%</span>
               </div>
@@ -336,7 +384,7 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
                   onClick={() =>
                     setInput((prev) => ({ ...prev, isTaxaDiretoManual: !prev.isTaxaDiretoManual }))
                   }
-                  className="whitespace-nowrap shrink-0 text-[9px] text-blue-600 hover:text-blue-800 underline font-semibold"
+                  className="whitespace-nowrap shrink-0 text-[9px] text-blue-600 hover:text-blue-800 underline font-semibold cursor-pointer"
                 >
                   {input.isTaxaDiretoManual ? 'Auto' : 'Editar Manual'}
                 </button>
@@ -346,7 +394,7 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
                 readOnly={!input.isTaxaDiretoManual}
                 value={input.taxaDiretoValor > 0 ? formatBRL(input.taxaDiretoValor) : ''}
                 onChange={handleTaxaDiretoManualChange}
-                placeholder=""
+                placeholder="R$ 0,00"
                 className={`w-full rounded-lg px-3 py-2 text-sm font-mono ${
                   input.isTaxaDiretoManual
                     ? 'bg-blue-50 border border-blue-300 text-blue-950 font-bold'
@@ -371,112 +419,143 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
               Base PV considerada para o cálculo das parcelas (PMT) na Tabela Price.
             </p>
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div className="flex items-center justify-between gap-2 min-h-[24px] mb-1">
-                <label className="block text-[10px] text-slate-600 uppercase font-bold">
-                  Prazo Inicial (Meses)
-                </label>
-                {selectedDev && (
-                  <span className="whitespace-nowrap shrink-0 text-[10px] text-blue-700 bg-blue-100/50 border border-blue-200/60 px-2 py-0.5 rounded-full font-bold backdrop-blur-xs font-mono">
-                    Máx: {currentMaxPrazo} mes{currentMaxPrazo !== 1 ? 'es' : ''}
-                  </span>
-                )}
-              </div>
-              <input
-                type="number"
-                min="1"
-                max={currentMaxPrazo}
-                placeholder=""
-                value={input.prazoMeses || ''}
-                onChange={(e) => handlePrazoMesesChange(parseInt(e.target.value, 10) || 0)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-bold font-mono focus:border-blue-600 outline-none transition-all"
-              />
-              {prazoWarning && (
-                <p className="text-[10px] text-amber-700 bg-amber-100/40 border border-amber-200/50 px-2.5 py-1 rounded-lg font-bold mt-1.5 flex items-center gap-1.5 backdrop-blur-xs">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                  <span>{prazoWarning}</span>
-                </p>
+        {/* SEÇÃO 2: PRAZO E JUROS (2 COLUNAS) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
+          <div>
+            <div className="flex items-center justify-between gap-2 min-h-[24px] mb-1">
+              <label className="block text-[10px] text-slate-600 uppercase font-bold">
+                Prazo Inicial (Meses)
+              </label>
+              {selectedDev && (
+                <span className="whitespace-nowrap shrink-0 text-[10px] text-blue-700 bg-blue-100/50 border border-blue-200/60 px-2 py-0.5 rounded-full font-bold backdrop-blur-xs font-mono">
+                  Máx: {currentMaxPrazo}m
+                </span>
               )}
             </div>
+            <input
+              type="number"
+              min="1"
+              max={currentMaxPrazo}
+              placeholder="0"
+              value={input.prazoMeses || ''}
+              onChange={(e) => handlePrazoMesesChange(parseInt(e.target.value, 10) || 0)}
+              className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-bold font-mono focus:border-blue-600 outline-none transition-all"
+            />
+            {prazoWarning && (
+              <p className="text-[10px] text-amber-700 bg-amber-100/40 border border-amber-200/50 px-2.5 py-1 rounded-lg font-bold mt-1.5 flex items-center gap-1.5 backdrop-blur-xs">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>{prazoWarning}</span>
+              </p>
+            )}
+          </div>
 
-            <div>
-              <div className="flex items-center justify-between gap-2 min-h-[24px] mb-1">
-                <label className="block text-[10px] text-slate-600 uppercase font-bold">
-                  Juros Mensais (% a.m.)
-                </label>
-                {canEditTaxa ? (
-                  <button
-                    type="button"
-                    onClick={handleToggleJurosManual}
-                    className="whitespace-nowrap shrink-0 text-[9px] text-blue-600 hover:text-blue-800 underline font-semibold"
-                  >
-                    {input.isJurosManual ? 'Restaurar Padrão' : 'Editar Manual'}
-                  </button>
-                ) : (
-                  <span
-                    className="whitespace-nowrap shrink-0 flex items-center gap-1 text-[10px] text-amber-700 bg-amber-100/50 border border-amber-200/60 px-2 py-0.5 rounded-full font-bold backdrop-blur-xs"
-                    title="Apenas Administradores e Gerentes podem alterar a taxa de juros"
-                  >
-                    <Lock className="w-3 h-3 text-amber-600" />
-                    <span>Bloqueado</span>
-                  </span>
-                )}
-              </div>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="20"
-                  readOnly={!canEditTaxa || !input.isJurosManual}
-                  disabled={!canEditTaxa || !input.isJurosManual}
-                  placeholder=""
-                  value={input.taxaJurosMensalPct || ''}
-                  onChange={(e) =>
-                    setInput({ ...input, taxaJurosMensalPct: parseFloat(e.target.value) || 0 })
-                  }
-                  title={
-                    !canEditTaxa
-                      ? 'Apenas Administradores e Gerentes podem alterar a taxa de juros'
-                      : !input.isJurosManual
-                      ? 'Clique em Editar Manual para alterar a taxa de juros'
-                      : ''
-                  }
-                  className={`w-full rounded-lg px-3 py-2 text-sm font-mono transition-all ${
-                    canEditTaxa && input.isJurosManual
-                      ? 'bg-blue-50 border border-blue-300 text-blue-950 font-bold focus:border-blue-600'
-                      : 'bg-slate-100 border border-slate-200 text-slate-600 cursor-not-allowed pr-8'
-                  }`}
-                />
-                {!canEditTaxa && (
-                  <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
-                )}
-                {canEditTaxa && (
-                  <span className={`absolute right-3 top-2.5 text-xs font-mono pointer-events-none ${input.isJurosManual ? 'text-blue-600 font-bold' : 'text-slate-500'}`}>
-                    %
-                  </span>
-                )}
-              </div>
-              {!canEditTaxa && (
-                <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
-                  <Lock className="w-3 h-3 shrink-0 text-amber-600" />
-                  <span>Apenas Administradores e Gerentes podem alterar a taxa de juros.</span>
-                </p>
+          <div>
+            <div className="flex items-center justify-between gap-2 min-h-[24px] mb-1">
+              <label className="block text-[10px] text-slate-600 uppercase font-bold">
+                Juros Mensais (% a.m.)
+              </label>
+              {canEditTaxa ? (
+                <button
+                  type="button"
+                  onClick={handleToggleJurosManual}
+                  className="whitespace-nowrap shrink-0 text-[9px] text-blue-600 hover:text-blue-800 underline font-semibold cursor-pointer"
+                >
+                  {input.isJurosManual ? 'Restaurar Padrão' : 'Editar Manual'}
+                </button>
+              ) : (
+                <span
+                  className="whitespace-nowrap shrink-0 flex items-center gap-1 text-[10px] text-amber-700 bg-amber-100/50 border border-amber-200/60 px-2 py-0.5 rounded-full font-bold backdrop-blur-xs"
+                  title="Apenas Administradores e Gerentes podem alterar a taxa de juros"
+                >
+                  <Lock className="w-3 h-3 text-amber-600" />
+                  <span>Bloqueado</span>
+                </span>
               )}
+            </div>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="20"
+                readOnly={!canEditTaxa || !input.isJurosManual}
+                disabled={!canEditTaxa || !input.isJurosManual}
+                placeholder="0,00"
+                value={input.taxaJurosMensalPct || ''}
+                onChange={(e) =>
+                  setInput({ ...input, taxaJurosMensalPct: parseFloat(e.target.value) || 0 })
+                }
+                title={
+                  !canEditTaxa
+                    ? 'Apenas Administradores e Gerentes podem alterar a taxa de juros'
+                    : !input.isJurosManual
+                    ? 'Clique em Editar Manual para alterar a taxa de juros'
+                    : ''
+                }
+                className={`w-full rounded-lg px-3 py-2 text-sm font-mono transition-all ${
+                  canEditTaxa && input.isJurosManual
+                    ? 'bg-blue-50 border border-blue-300 text-blue-950 font-bold focus:border-blue-600'
+                    : 'bg-slate-100 border border-slate-200 text-slate-600 cursor-not-allowed pr-8'
+                }`}
+              />
+              {!canEditTaxa && (
+                <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+              )}
+              {canEditTaxa && (
+                <span className={`absolute right-3 top-2.5 text-xs font-mono pointer-events-none ${input.isJurosManual ? 'text-blue-600 font-bold' : 'text-slate-500'}`}>
+                  %
+                </span>
+              )}
+            </div>
+            {!canEditTaxa && (
+              <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                <Lock className="w-3 h-3 shrink-0 text-amber-600" />
+                <span>Apenas Administradores e Gerentes podem alterar.</span>
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* ETAPA 1: CÁLCULO DA PARCELA MENSAL (2 COLUNAS) */}
+        <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2">
+          <div className="text-[10px] font-bold text-blue-800 uppercase tracking-wider flex items-center gap-1.5">
+            <CalcIcon className="w-3.5 h-3.5 text-blue-600" />
+            Etapa 1: Parcela Mensal Inicial
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+            <div>
+              <button
+                type="button"
+                onClick={handleCalculateMonthlyPmt}
+                className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
+              >
+                <CalcIcon className="w-4 h-4 text-white" />
+                <span>Calcular Parcela</span>
+              </button>
+            </div>
+            <div className="bg-white border border-blue-300 rounded-lg p-2.5 flex flex-col justify-center shadow-2xs">
+              <span className="block text-[9px] font-bold uppercase text-slate-500">
+                Valor da Parcela Mensal
+              </span>
+              <span className="block text-base font-mono font-bold text-blue-950">
+                {displayPmt > 0 ? formatBRL(displayPmt) : 'R$ 0,00'}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* SECTION 3: AMORTIZAÇÃO EXTRAORDINÁRIA */}
-        <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-3">
+        {/* ETAPA 2: AMORTIZAÇÃO EXTRAORDINÁRIA (BLOCO VERDE DESTACADO) */}
+        <div className={`p-4 bg-emerald-50/90 border rounded-xl space-y-3 transition-all ${
+          simulationError ? 'border-amber-400 ring-2 ring-amber-200' : 'border-emerald-200/90'
+        }`}>
           <div className="flex items-center justify-between">
             <h3 className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
               <TrendingDown className="w-4 h-4 text-emerald-600" />
-              Amortização Extraordinária
+              Etapa 2: Amortização Extraordinária
             </h3>
-            <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-mono font-semibold">
+            <span className="text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-semibold">
               Abatimento de Saldo
             </span>
           </div>
@@ -490,15 +569,20 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
                 type="number"
                 min="1"
                 max={input.prazoMeses || 360}
-                placeholder=""
+                placeholder="Ex: 10"
                 value={input.mesAmortizacaoIndex || ''}
-                onChange={(e) =>
+                onChange={(e) => {
+                  setSimulationError(null);
                   setInput({
                     ...input,
                     mesAmortizacaoIndex: Math.max(0, parseInt(e.target.value, 10) || 0),
-                  })
-                }
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500"
+                  });
+                }}
+                className={`w-full bg-white border rounded-lg px-3 py-2 text-xs text-slate-900 outline-none font-mono font-bold transition-all ${
+                  simulationError && (!input.mesAmortizacaoIndex || input.mesAmortizacaoIndex < 1 || input.mesAmortizacaoIndex > (input.prazoMeses || 60))
+                    ? 'border-red-500 ring-1 ring-red-300'
+                    : 'border-slate-300 focus:border-emerald-500'
+                }`}
               />
             </div>
 
@@ -509,20 +593,38 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
               <input
                 type="text"
                 value={input.valorAmortizacaoExtra > 0 ? formatBRL(input.valorAmortizacaoExtra) : ''}
-                onChange={handleAporteChange}
+                onChange={(e) => {
+                  setSimulationError(null);
+                  handleAporteChange(e);
+                }}
                 placeholder="R$ 0,00"
-                className="w-full bg-white border border-emerald-400 rounded-lg px-3 py-2 text-xs font-mono text-emerald-800 outline-none font-bold focus:border-emerald-600"
+                className={`w-full bg-white border rounded-lg px-3 py-2 text-xs font-mono outline-none font-bold transition-all ${
+                  simulationError && input.valorAmortizacaoExtra <= 0
+                    ? 'border-red-500 ring-1 ring-red-300 text-red-900'
+                    : 'border-emerald-400 text-emerald-800 focus:border-emerald-600'
+                }`}
               />
             </div>
           </div>
         </div>
 
-        {/* RECALCULATE TRIGGER */}
+        {/* ALERTA / AVISO DE VALIDAÇÃO DE AMORTIZAÇÃO EXTRAORDINÁRIA */}
+        {simulationError && (
+          <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs font-medium space-y-1 animate-fade-in flex items-start gap-2.5 shadow-xs">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-bold text-amber-950">Preenchimento Obrigatório para Simular:</p>
+              <p className="text-[11px] text-amber-800 whitespace-pre-line leading-relaxed font-mono">{simulationError}</p>
+            </div>
+          </div>
+        )}
+
+        {/* BOTÃO FINAL DE AÇÃO: SIMULAR AGORA */}
         <button
-          onClick={onRunSimulation}
-          className="w-full py-3.5 bg-blue-100/50 hover:bg-blue-200/60 text-blue-700 border border-blue-200/60 font-bold text-sm rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99] backdrop-blur-xs"
+          onClick={handleSimularAgora}
+          className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
         >
-          <Play className="w-4 h-4 fill-current text-blue-600" />
+          <Play className="w-4 h-4 fill-current text-white" />
           <span>Simular Agora</span>
         </button>
       </div>

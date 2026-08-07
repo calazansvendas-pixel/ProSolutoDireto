@@ -129,13 +129,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-4 border-b border-slate-200 flex items-center justify-between min-h-[65px]">
           {!isCollapsed ? (
             <div className="overflow-hidden transition-opacity duration-200 whitespace-nowrap">
-              <h1 className="text-sm font-bold tracking-tight text-slate-900 uppercase truncate">
-                Motor Pró-Soluto
+              <h1 className="text-sm font-black tracking-tight text-slate-900 uppercase truncate">
+                CALAZANS IMOB
               </h1>
+              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">
+                Soluções Imobiliárias
+              </p>
             </div>
           ) : (
             <div className="hidden md:block text-xs font-black tracking-widest text-blue-600 uppercase">
-              MPS
+              CIMOB
             </div>
           )}
 

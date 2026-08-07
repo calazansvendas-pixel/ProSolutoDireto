@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-          <span className="text-slate-400 text-xs sm:text-sm italic">Motor Pró-Soluto /</span>
+          <span className="text-slate-400 text-xs sm:text-sm font-medium">CALAZANS IMOB /</span>
           <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate max-w-[200px] sm:max-w-xs md:max-w-md">
             {getTabTitle()}
           </span>

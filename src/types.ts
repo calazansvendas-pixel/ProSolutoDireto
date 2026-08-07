@@ -30,6 +30,10 @@ export interface UserProfile {
   avatarUrl?: string;
   empreendimentoPadrao?: string;
   isMainAdmin?: boolean;
+  cpf?: string;
+  phone?: string;
+  creci?: string;
+  imobiliaria?: string;
 }
 
 export interface SimulationInput {

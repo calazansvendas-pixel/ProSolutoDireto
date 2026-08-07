@@ -66,10 +66,17 @@ export const INITIAL_USERS: UserProfile[] = [
 
 export function getStoredUsers(): UserProfile[] {
   try {
-    const data = localStorage.getItem(USERS_STORAGE_KEY);
-    if (data) {
+    const data = typeof window !== 'undefined' ? localStorage.getItem(USERS_STORAGE_KEY) : null;
+    if (data && data.trim() !== '' && data !== '[]' && data !== 'null') {
       const parsed: UserProfile[] = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        // Guarantee admin user carlos.admin@morar.com.br is present
+        const hasAdmin = parsed.some((u) => u.email.toLowerCase() === 'carlos.admin@morar.com.br');
+        if (!hasAdmin) {
+          const merged = [INITIAL_USERS[0], ...parsed];
+          saveUsersList(merged);
+          return merged;
+        }
         return parsed;
       }
     }
@@ -107,6 +114,10 @@ export async function fetchUsersFromFirestore(): Promise<UserProfile[]> {
           isMainAdmin: data.isMainAdmin || data.email === 'carlos.admin@morar.com.br',
           createdAt: data.createdAt || new Date().toISOString(),
           empreendimentoPadrao: data.empreendimentoPadrao,
+          cpf: data.cpf || '',
+          phone: data.phone || data.telefone || '',
+          creci: data.creci || '',
+          imobiliaria: data.imobiliaria || data.agency || '',
         });
       });
       saveUsersList(fsUsers);
@@ -137,6 +148,10 @@ export async function syncUserToFirestore(user: UserProfile): Promise<void> {
         status: user.status,
         isMainAdmin: user.isMainAdmin || user.email === 'carlos.admin@morar.com.br',
         createdAt: user.createdAt || new Date().toISOString(),
+        cpf: user.cpf || '',
+        phone: user.phone || '',
+        creci: user.creci || '',
+        imobiliaria: user.imobiliaria || '',
       },
       { merge: true }
     );
@@ -150,6 +165,10 @@ export async function registerPublicUserAsync(data: {
   name: string;
   email: string;
   password?: string;
+  cpf?: string;
+  phone?: string;
+  creci?: string;
+  imobiliaria?: string;
 }): Promise<UserProfile> {
   const normalizedEmail = data.email.trim().toLowerCase();
   let uid = `usr_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
@@ -173,6 +192,10 @@ export async function registerPublicUserAsync(data: {
     status: 'Pendente', // ALWAYS 'Pendente'
     isMainAdmin: false,
     createdAt: new Date().toISOString(),
+    cpf: data.cpf,
+    phone: data.phone,
+    creci: data.creci,
+    imobiliaria: data.imobiliaria,
   };
 
   // Sync to Firestore
@@ -186,7 +209,14 @@ export async function registerPublicUserAsync(data: {
   return newUser;
 }
 
-export function registerPublicUser(data: { name: string; email: string }): UserProfile {
+export function registerPublicUser(data: {
+  name: string;
+  email: string;
+  cpf?: string;
+  phone?: string;
+  creci?: string;
+  imobiliaria?: string;
+}): UserProfile {
   const users = getStoredUsers();
   const normalizedEmail = data.email.trim().toLowerCase();
 
@@ -204,6 +234,10 @@ export function registerPublicUser(data: { name: string; email: string }): UserP
     status: 'Pendente',
     isMainAdmin: false,
     createdAt: new Date().toISOString(),
+    cpf: data.cpf,
+    phone: data.phone,
+    creci: data.creci,
+    imobiliaria: data.imobiliaria,
   };
 
   const updated = [newUser, ...users];
@@ -218,6 +252,7 @@ export function registerPublicUser(data: { name: string; email: string }): UserP
 export interface AuthResult {
   success: boolean;
   statusBlocked?: boolean;
+  userNotFound?: boolean;
   user?: UserProfile;
   message?: string;
 }
@@ -246,6 +281,10 @@ export async function authenticateUserAsync(identifier: string, password?: strin
           status: (data.status || 'Pendente') as UserStatus,
           isMainAdmin: data.isMainAdmin || clean === 'carlos.admin@morar.com.br',
           createdAt: data.createdAt,
+          cpf: data.cpf || '',
+          phone: data.phone || data.telefone || '',
+          creci: data.creci || '',
+          imobiliaria: data.imobiliaria || data.agency || '',
         };
 
         // CHECK STATUS
@@ -287,6 +326,10 @@ export async function authenticateUserAsync(identifier: string, password?: strin
         status: (data.status || 'Pendente') as UserStatus,
         isMainAdmin: data.isMainAdmin || clean === 'carlos.admin@morar.com.br',
         createdAt: data.createdAt,
+        cpf: data.cpf || '',
+        phone: data.phone || data.telefone || '',
+        creci: data.creci || '',
+        imobiliaria: data.imobiliaria || data.agency || '',
       };
 
       if (userProfile.status === 'Pendente' || userProfile.status === 'Pausado') {
@@ -315,24 +358,22 @@ export async function authenticateUserAsync(identifier: string, password?: strin
 export function authenticateUser(identifier: string): AuthResult {
   const users = getStoredUsers();
   const clean = identifier.trim().toLowerCase();
+  const cleanDigits = clean.replace(/\D/g, '');
 
-  let user = users.find(
+  const user = users.find(
     (u) =>
       u.email.toLowerCase() === clean ||
-      u.email.toLowerCase().startsWith(clean) ||
-      u.name.toLowerCase().includes(clean)
+      (cleanDigits.length >= 11 && u.cpf && u.cpf.replace(/\D/g, '') === cleanDigits) ||
+      (clean.length >= 3 && u.name.toLowerCase() === clean) ||
+      (clean.length >= 3 && u.email.toLowerCase().split('@')[0] === clean)
   );
 
   if (!user) {
-    const isEmail = clean.includes('@');
-    const nameStr = isEmail ? clean.split('@')[0].replace('.', ' ') : clean;
-    const formattedName = nameStr.charAt(0).toUpperCase() + nameStr.slice(1);
-    const emailStr = isEmail ? clean : `${clean}@gmail.com`;
-
-    user = registerPublicUser({
-      name: formattedName || 'Novo Corretor',
-      email: emailStr,
-    });
+    return {
+      success: false,
+      userNotFound: true,
+      message: 'E-mail não cadastrado no sistema. Por favor, clique em "Cadastrar como Corretor" para solicitar seu acesso.',
+    };
   }
 
   // CHECK USER STATUS FOR ACCESS BLOCK

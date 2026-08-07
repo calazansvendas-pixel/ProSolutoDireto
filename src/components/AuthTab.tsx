@@ -27,6 +27,7 @@ import {
   authenticateUserAsync,
   registerPublicUserAsync,
 } from '../services/userService';
+import { recordAccessLog } from '../services/accessLogsService';
 
 interface AuthTabProps {
   currentUser: UserProfile;
@@ -146,23 +147,25 @@ export const AuthTab: React.FC<AuthTabProps> = ({
       const result = await authenticateUserAsync(cleanEmail, loginPassword);
       setIsLoginLoading(false);
 
-      // REGRA DE SEGURANÇA 1: USUÁRIO NÃO ENCONTRADO
-      if (result.userNotFound || (!result.user && !result.statusBlocked)) {
-        showToast('E-mail não cadastrado. Por favor, solicite seu cadastro primeiro.', 'error');
-        return; // PERMANECE NA TELA DE LOGIN!
+      // REGRA DE SEGURANÇA 1: USUÁRIO NÃO ENCONTRADO NA BASE DE DADOS
+      if (result.userNotFound || !result.user) {
+        showToast("E-mail não cadastrado no sistema. Por favor, clique em 'Cadastrar como Corretor' para solicitar seu acesso.", 'error');
+        // PERMANECE RIGOROSAMENTE NA TELA DE LOGIN!
+        return;
       }
 
       const userProfile = result.user;
+      const statusLower = (userProfile.status || '').toLowerCase();
 
-      // REGRA DE SEGURANÇA 2: CADASTRO PENDENTE OU EM ANÁLISE
-      if (result.statusBlocked || userProfile?.status === 'Pendente') {
+      // REGRA DE SEGURANÇA 2: CADASTRO PENDENTE / EM ANÁLISE
+      if (result.statusBlocked || statusLower === 'pendente' || statusLower === 'pending') {
         setActiveBrokerData({
-          name: userProfile?.name || 'Corretor Solicitante',
-          email: userProfile?.email || cleanEmail,
-          cpf: userProfile?.cpf || 'Não informado',
-          phone: userProfile?.phone || 'Não informado',
-          creci: userProfile?.creci || 'Em validação',
-          imobiliaria: userProfile?.imobiliaria || 'Parceira Morar',
+          name: userProfile.name || 'Corretor Solicitante',
+          email: userProfile.email || cleanEmail,
+          cpf: userProfile.cpf || 'Não informado',
+          phone: userProfile.phone || 'Não informado',
+          creci: userProfile.creci || 'Em validação',
+          imobiliaria: userProfile.imobiliaria || 'Parceira Morar',
           status: 'Pendente',
         });
         setCurrentView('pending');
@@ -171,21 +174,39 @@ export const AuthTab: React.FC<AuthTabProps> = ({
       }
 
       // REGRA DE SEGURANÇA 3: USUÁRIO BLOQUEADO / PAUSADO
-      if (userProfile?.status === 'Pausado') {
+      if (statusLower === 'pausado' || statusLower === 'paused') {
         showToast('Seu cadastro está suspenso. Entre em contato com a gerência.', 'error');
         return;
       }
 
-      // REGRA DE SUCESSO: USUÁRIO ATIVO / APROVADO
-      if (userProfile && userProfile.status === 'Ativo') {
+      // REGRA DE SUCESSO: USUÁRIO ATIVO / APROVADO OU ADMIN
+      if (
+        statusLower === 'ativo' ||
+        statusLower === 'active' ||
+        statusLower === 'approved' ||
+        userProfile.role === 'admin'
+      ) {
         setCurrentUser(userProfile);
         saveUserProfile(userProfile);
         setActiveBrokerData(userProfile);
 
+        // REGISTRAR LOG DE ACESSO
+        recordAccessLog({
+          userId: userProfile.id || userProfile.uid || 'usr_corretor',
+          userName: userProfile.name,
+          email: userProfile.email,
+          agency: userProfile.imobiliaria || 'Parceira Morar',
+          creci: userProfile.creci || 'Não informado',
+          action: 'LOGIN_SUCCESS',
+          details: `Acesso realizado com sucesso no sistema (${userProfile.role})`,
+        });
+
         showToast(`Bem-vindo, ${userProfile.name}! Acesso autorizado.`, 'success');
         
-        // Show Approved view or launch directly
+        // Show Approved view
         setCurrentView('approved');
+      } else {
+        showToast("E-mail não cadastrado no sistema. Por favor, clique em 'Cadastrar como Corretor' para solicitar seu acesso.", 'error');
       }
     } catch (err) {
       setIsLoginLoading(false);
@@ -216,6 +237,17 @@ export const AuthTab: React.FC<AuthTabProps> = ({
       });
 
       setIsRegLoading(false);
+
+      // REGISTRAR LOG DE SOLICITAÇÃO
+      recordAccessLog({
+        userId: newUser.id || newUser.uid || 'usr_novo',
+        userName: newUser.name,
+        email: newUser.email,
+        agency: regImobiliaria || 'Parceira Morar',
+        creci: regCreci || 'Pendente',
+        action: 'REGISTER_REQUEST',
+        details: 'Solicitação de credenciamento enviada para aprovação do Administrador',
+      });
 
       // Save summary data and advance to Tela 3 (Pendente)
       setActiveBrokerData({

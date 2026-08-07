@@ -50,8 +50,8 @@ export const INITIAL_DEVELOPMENTS: Development[] = [
 
 export function getStoredDevelopments(): Development[] {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.DEVELOPMENTS);
-    if (data) {
+    const data = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.DEVELOPMENTS) : null;
+    if (data && data.trim() !== '' && data !== '[]' && data !== 'null') {
       const parsed: Development[] = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) {
         return parsed.map((dev) => ({
@@ -62,8 +62,10 @@ export function getStoredDevelopments(): Development[] {
       }
     }
   } catch (e) {
-    console.error('Failed to read developments', e);
+    console.error('Failed to read developments from localStorage:', e);
   }
+
+  // Seed default developments if empty or missing
   saveDevelopments(INITIAL_DEVELOPMENTS);
   return INITIAL_DEVELOPMENTS;
 }

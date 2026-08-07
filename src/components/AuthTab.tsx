@@ -54,9 +54,9 @@ export const AuthTab: React.FC<AuthTabProps> = ({
   // Screen state controller: 'login' | 'register' | 'pending' | 'approved'
   const [currentView, setCurrentView] = useState<ScreenView>('login');
 
-  // Theme Mode State: 'dark' | 'light'
+  // Theme Mode State: 'dark' | 'light' (Default to light as requested)
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return getStoredThemeMode() || 'dark';
+    return getStoredThemeMode() || 'light';
   });
 
   const toggleTheme = () => {
@@ -251,7 +251,7 @@ export const AuthTab: React.FC<AuthTabProps> = ({
   return (
     <div
       className={`flex-1 min-h-full py-6 px-3 sm:px-4 flex flex-col items-center justify-center relative overflow-y-auto font-sans transition-colors duration-200 ${
-        isDark ? 'bg-slate-900/95 text-white' : 'bg-slate-100 text-slate-900'
+        isDark ? 'bg-slate-900/95 text-white' : 'bg-[#F8FAFC] text-[#1C2B3E]'
       }`}
     >
       {/* FLOATING TOAST NOTIFICATION */}
@@ -293,10 +293,10 @@ export const AuthTab: React.FC<AuthTabProps> = ({
 
       {/* MAIN CONTAINER CARD WITH CONTROLLED MAX-HEIGHT AND INNER OVERFLOW SCROLL */}
       <div
-        className={`w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col rounded-3xl shadow-2xl backdrop-blur-xl relative overflow-hidden my-auto border transition-colors duration-200 ${
+        className={`w-full max-w-lg max-h-[85vh] sm:max-h-[88vh] flex flex-col rounded-3xl shadow-xl backdrop-blur-xl relative overflow-hidden my-auto border transition-colors duration-200 ${
           isDark
             ? 'bg-slate-800/95 border-slate-700/80 text-white'
-            : 'bg-white border-slate-200 text-slate-900 shadow-xl'
+            : 'bg-white border-[#E2E8F0] text-[#1C2B3E] shadow-slate-200/50'
         }`}
       >
         {/* THEME TOGGLE BUTTON AT TOP RIGHT */}
@@ -331,19 +331,19 @@ export const AuthTab: React.FC<AuthTabProps> = ({
           {/* HEADER SECTION: ICON + TITLE + SUBTITLE */}
           <div className="text-center mb-6">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-2.5 shadow-inner border transition-colors ${
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 border transition-colors ${
                 isDark
-                  ? 'bg-emerald-500/10 border-emerald-500/30'
-                  : 'bg-emerald-50 border-emerald-200'
+                  ? 'bg-sky-500/10 border-sky-500/30 text-sky-400'
+                  : 'bg-[#E0F2FE] border-[#BAE6FD] text-[#0284C7]'
               }`}
             >
-              <Building2 className={`w-7 h-7 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              <Building2 className="w-7 h-7" />
             </div>
-            <h1 className={`text-xl sm:text-2xl font-black tracking-tight uppercase ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              Portal do Corretor
+            <h1 className={`text-xl sm:text-2xl font-semibold tracking-tight ${isDark ? 'text-white' : 'text-[#1C2B3E]'}`}>
+              Amortização Financiamento Bancário
             </h1>
-            <p className={`text-[11px] font-bold tracking-widest uppercase mt-0.5 ${isDark ? 'text-emerald-400/90' : 'text-emerald-600'}`}>
-              Rede Exclusiva de Imóveis
+            <p className={`text-xs font-medium tracking-wider uppercase mt-1 ${isDark ? 'text-sky-400' : 'text-[#64748B]'}`}>
+              CALAZANS IMOB - Soluções Imobiliárias
             </p>
           </div>
 
@@ -351,24 +351,24 @@ export const AuthTab: React.FC<AuthTabProps> = ({
           {/* TELA 1: LOGIN */}
           {/* ========================================================================= */}
           {currentView === 'login' && (
-            <form onSubmit={handleLoginSubmit} className="space-y-3.5">
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
               {/* FIELD: EMAIL OU CPF */}
               <div>
-                <label className={`block text-[11px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                   E-mail Profissional ou CPF
                 </label>
                 <div className="relative">
-                  <Mail className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                  <Mail className={`w-4 h-4 absolute left-3.5 top-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                   <input
                     type="text"
                     required
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     placeholder="corretor@imobiliaria.com.br"
-                    className={`w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-medium outline-none transition-all border ${
+                    className={`w-full rounded-xl pl-10 pr-4 py-3 text-xs font-normal outline-none transition-all border ${
                       isDark
-                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
-                        : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20'
+                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                        : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                     }`}
                   />
                 </div>
@@ -376,30 +376,30 @@ export const AuthTab: React.FC<AuthTabProps> = ({
 
               {/* FIELD: SENHA */}
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className={`block text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className={`block text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                     Senha
                   </label>
                 </div>
                 <div className="relative">
-                  <Lock className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                  <Lock className={`w-4 h-4 absolute left-3.5 top-3.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="Sua senha de acesso"
-                    className={`w-full rounded-xl pl-10 pr-10 py-2.5 text-xs font-medium outline-none transition-all border ${
+                    className={`w-full rounded-xl pl-10 pr-10 py-3 text-xs font-normal outline-none transition-all border ${
                       isDark
-                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
-                        : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20'
+                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                        : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className={`absolute right-3.5 top-3 transition-colors cursor-pointer ${
-                      isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'
+                    className={`absolute right-3.5 top-3.5 transition-colors cursor-pointer ${
+                      isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'
                     }`}
                     title={showPassword ? 'Ocultar Senha' : 'Exibir Senha'}
                   >
@@ -412,7 +412,11 @@ export const AuthTab: React.FC<AuthTabProps> = ({
               <button
                 type="submit"
                 disabled={isLoginLoading}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs tracking-wider uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 mt-1"
+                className={`w-full py-3.5 border font-semibold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 mt-2 ${
+                  isDark
+                    ? 'bg-sky-500/15 hover:bg-sky-500/25 border-sky-500/30 text-sky-300'
+                    : 'bg-[#E0F2FE] hover:bg-sky-200/80 active:bg-sky-300/80 border-[#BAE6FD] text-[#0284C7]'
+                }`}
               >
                 {isLoginLoading ? (
                   <span className="animate-pulse">Autenticando Acesso...</span>
@@ -427,11 +431,11 @@ export const AuthTab: React.FC<AuthTabProps> = ({
               {/* DIVIDER */}
               <div className="relative my-4 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
-                  <div className={`w-full border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`} />
+                  <div className={`w-full border-t ${isDark ? 'border-slate-700' : 'border-[#E2E8F0]'}`} />
                 </div>
                 <span
-                  className={`relative px-3 text-[10px] font-bold uppercase tracking-widest ${
-                    isDark ? 'bg-slate-800 text-slate-400' : 'bg-white text-slate-500'
+                  className={`relative px-3 text-[10px] font-medium uppercase tracking-widest ${
+                    isDark ? 'bg-slate-800 text-slate-400' : 'bg-white text-[#64748B]'
                   }`}
                 >
                   Ainda não tem acesso?
@@ -442,17 +446,15 @@ export const AuthTab: React.FC<AuthTabProps> = ({
               <button
                 type="button"
                 onClick={() => setCurrentView('register')}
-                className={`w-full py-2.5 font-bold text-xs uppercase tracking-wider rounded-xl border transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`w-full py-3 font-medium text-xs uppercase tracking-wider rounded-xl border transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   isDark
-                    ? 'bg-slate-700/60 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border-slate-600/80'
-                    : 'bg-slate-100 hover:bg-slate-200 text-emerald-700 border-slate-300'
+                    ? 'bg-slate-700/60 hover:bg-slate-700 text-slate-200 hover:text-white border-slate-600/80'
+                    : 'bg-[#F8FAFC] hover:bg-slate-100 text-[#1C2B3E] border-[#E2E8F0]'
                 }`}
               >
-                <UserPlus className="w-4 h-4" />
+                <UserPlus className="w-4 h-4 text-[#0284C7]" />
                 <span>Cadastrar como Corretor</span>
               </button>
-
-
             </form>
           )}
 
@@ -460,76 +462,76 @@ export const AuthTab: React.FC<AuthTabProps> = ({
           {/* TELA 2: CADASTRO DO CORRETOR */}
           {/* ========================================================================= */}
           {currentView === 'register' && (
-            <form onSubmit={handleRegisterSubmit} className="space-y-3">
-              <div className={`border-b pb-2.5 mb-2 ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-                <h2 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  <UserPlus className="w-4 h-4 text-emerald-500" />
-                  Solicitação de Credenciamento
+            <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+              <div className={`border-b pb-3 mb-3 ${isDark ? 'border-slate-700' : 'border-[#E2E8F0]'}`}>
+                <h2 className={`text-xs font-semibold uppercase tracking-wider flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#1C2B3E]'}`}>
+                  <UserPlus className="w-4 h-4 text-[#0284C7]" />
+                  <span>Solicitação de Credenciamento</span>
                 </h2>
-                <p className={`text-[11px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p className={`text-xs font-normal mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-[#64748B]'}`}>
                   Preencha seus dados profissionais para análise da equipe.
                 </p>
               </div>
 
               {/* FIELD: NOME COMPLETO */}
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                   Nome Completo *
                 </label>
                 <div className="relative">
-                  <User className={`w-4 h-4 absolute left-3.5 top-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                  <User className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                   <input
                     type="text"
                     required
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     placeholder="Nome e Sobrenome"
-                    className={`w-full rounded-xl pl-9 pr-3 py-2 text-xs outline-none border ${
+                    className={`w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-normal outline-none transition-all border ${
                       isDark
-                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                        : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600'
+                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                        : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                     }`}
                   />
                 </div>
               </div>
 
               {/* GRID: CPF E TELEFONE */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                     CPF
                   </label>
                   <div className="relative">
-                    <FileText className={`w-4 h-4 absolute left-3.5 top-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                    <FileText className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                     <input
                       type="text"
                       value={regCpf}
                       onChange={handleCpfChange}
                       placeholder="000.000.000-00"
-                      className={`w-full rounded-xl pl-9 pr-3 py-2 text-xs font-mono outline-none border ${
+                      className={`w-full rounded-xl pl-10 pr-3 py-2.5 text-xs font-mono outline-none transition-all border ${
                         isDark
-                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                          : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600'
+                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                          : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                       }`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                     Telefone / WhatsApp
                   </label>
                   <div className="relative">
-                    <Phone className={`w-4 h-4 absolute left-3.5 top-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                    <Phone className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                     <input
                       type="text"
                       value={regPhone}
                       onChange={handlePhoneChange}
                       placeholder="(27) 99999-9999"
-                      className={`w-full rounded-xl pl-9 pr-3 py-2 text-xs font-mono outline-none border ${
+                      className={`w-full rounded-xl pl-10 pr-3 py-2.5 text-xs font-mono outline-none transition-all border ${
                         isDark
-                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                          : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600'
+                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                          : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                       }`}
                     />
                   </div>
@@ -538,63 +540,63 @@ export const AuthTab: React.FC<AuthTabProps> = ({
 
               {/* FIELD: EMAIL PROFISSIONAL */}
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                   E-mail Profissional *
                 </label>
                 <div className="relative">
-                  <Mail className={`w-4 h-4 absolute left-3.5 top-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                  <Mail className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                   <input
                     type="email"
                     required
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="corretor@imobiliaria.com.br"
-                    className={`w-full rounded-xl pl-9 pr-3 py-2 text-xs outline-none border ${
+                    className={`w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-normal outline-none transition-all border ${
                       isDark
-                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                        : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600'
+                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                        : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                     }`}
                   />
                 </div>
               </div>
 
               {/* GRID: CRECI E IMOBILIÁRIA */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                     Nº CRECI
                   </label>
                   <div className="relative">
-                    <ShieldCheck className={`w-4 h-4 absolute left-3.5 top-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                    <ShieldCheck className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                     <input
                       type="text"
                       value={regCreci}
                       onChange={(e) => setRegCreci(e.target.value)}
                       placeholder="12345-F"
-                      className={`w-full rounded-xl pl-9 pr-3 py-2 text-xs font-mono uppercase outline-none border ${
+                      className={`w-full rounded-xl pl-10 pr-3 py-2.5 text-xs font-mono uppercase outline-none transition-all border ${
                         isDark
-                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                          : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600'
+                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                          : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                       }`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
                     Imobiliária / Empresa
                   </label>
                   <div className="relative">
-                    <Building className={`w-4 h-4 absolute left-3.5 top-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                    <Building className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                     <input
                       type="text"
                       value={regImobiliaria}
                       onChange={(e) => setRegImobiliaria(e.target.value)}
                       placeholder="Sua Imobiliária"
-                      className={`w-full rounded-xl pl-9 pr-3 py-2 text-xs outline-none border ${
+                      className={`w-full rounded-xl pl-10 pr-3 py-2.5 text-xs font-normal outline-none transition-all border ${
                         isDark
-                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                          : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600'
+                          ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                          : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                       }`}
                     />
                   </div>
@@ -603,20 +605,20 @@ export const AuthTab: React.FC<AuthTabProps> = ({
 
               {/* FIELD: SENHA INICIAL */}
               <div>
-                <label className={`block text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                  Senha de Acesso (Opcional - Padrão: Morar@2026)
+                <label className={`block text-xs font-medium uppercase tracking-wider mb-1.5 ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
+                  Senha de Acesso
                 </label>
                 <div className="relative">
-                  <Lock className={`w-4 h-4 absolute left-3.5 top-2.5 pointer-events-none ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                  <Lock className={`w-4 h-4 absolute left-3.5 top-3 pointer-events-none ${isDark ? 'text-slate-400' : 'text-[#0284C7]'}`} />
                   <input
                     type="password"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="Crie uma senha"
-                    className={`w-full rounded-xl pl-9 pr-3 py-2 text-xs outline-none border ${
+                    placeholder="Crie uma senha de acesso"
+                    className={`w-full rounded-xl pl-10 pr-4 py-2.5 text-xs font-normal outline-none transition-all border ${
                       isDark
-                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-emerald-500'
-                        : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-600'
+                        ? 'bg-slate-900/80 border-slate-700 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20'
+                        : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E] placeholder-slate-400 focus:bg-white focus:border-[#0284C7] focus:ring-2 focus:ring-sky-500/20'
                     }`}
                   />
                 </div>
@@ -626,7 +628,11 @@ export const AuthTab: React.FC<AuthTabProps> = ({
               <button
                 type="submit"
                 disabled={isRegLoading}
-                className="w-full py-3 mt-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                className={`w-full py-3.5 border font-semibold text-xs sm:text-sm tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 mt-2 ${
+                  isDark
+                    ? 'bg-sky-500/15 hover:bg-sky-500/25 border-sky-500/30 text-sky-300'
+                    : 'bg-[#E0F2FE] hover:bg-sky-200/80 active:bg-sky-300/80 border-[#BAE6FD] text-[#0284C7]'
+                }`}
               >
                 {isRegLoading ? (
                   <span className="animate-pulse">Enviando Dados...</span>
@@ -639,15 +645,15 @@ export const AuthTab: React.FC<AuthTabProps> = ({
               </button>
 
               {/* RETURN BUTTON */}
-              <div className="pt-1.5 text-center">
+              <div className="pt-2 text-center">
                 <button
                   type="button"
                   onClick={() => setCurrentView('login')}
-                  className={`text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
-                    isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                  className={`text-xs font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    isDark ? 'text-slate-400 hover:text-white' : 'text-[#64748B] hover:text-[#1C2B3E]'
                   }`}
                 >
-                  <ArrowLeft className="w-3.5 h-3.5 text-emerald-500" />
+                  <ArrowLeft className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>Voltar à Tela de Login</span>
                 </button>
               </div>
@@ -661,71 +667,79 @@ export const AuthTab: React.FC<AuthTabProps> = ({
             <div className="space-y-4 text-center animate-fade-in">
               {/* STATUS BADGE */}
               <div
-                className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto shadow-inner border ${
-                  isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-200'
+                className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto border transition-colors ${
+                  isDark
+                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                    : 'bg-[#FEF3C7] border-amber-200 text-amber-600'
                 }`}
               >
-                <Clock className="w-7 h-7 text-amber-500 animate-pulse" />
+                <Clock className="w-7 h-7 text-amber-600 animate-pulse" />
               </div>
 
               <div>
-                <span className="inline-block px-3 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-[10px] uppercase tracking-widest rounded-full mb-1.5">
+                <span
+                  className={`inline-block px-3.5 py-1 font-medium text-[11px] uppercase tracking-wider rounded-full mb-2 border ${
+                    isDark
+                      ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                      : 'bg-[#FEF3C7] border-amber-200 text-amber-700'
+                  }`}
+                >
                   Análise em Andamento
                 </span>
-                <h2 className={`text-lg font-black uppercase tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h2 className={`text-xl font-semibold uppercase tracking-tight ${isDark ? 'text-white' : 'text-[#1C2B3E]'}`}>
                   Cadastro em Avaliação
                 </h2>
-                <p className={`text-xs max-w-sm mx-auto mt-0.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  A solicitação de credenciamento do corretor foi recebida e está sob análise do administrador.
+                <p className={`text-xs sm:text-sm font-normal max-w-sm mx-auto mt-1.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
+                  A solicitação de credenciamento do corretor foi recebida e está sob análise do Administrador.
                 </p>
               </div>
 
               {/* SUMMARY CARD OF REGISTERED BROKER DATA */}
               {activeBrokerData && (
                 <div
-                  className={`rounded-2xl p-3.5 text-left space-y-2 text-xs border ${
-                    isDark ? 'bg-slate-900/80 border-slate-700/90 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+                  className={`rounded-2xl p-4 text-left space-y-2 text-xs border transition-all ${
+                    isDark ? 'bg-slate-900/80 border-slate-700/90 text-slate-300' : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#1C2B3E]'
                   }`}
                 >
-                  <div className={`flex items-center justify-between border-b pb-1.5 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                    <span className="text-[10px] font-bold uppercase opacity-75">Resumo da Solicitação</span>
-                    <span className="text-[10px] font-mono text-amber-500 font-bold">STATUS: PENDENTE</span>
+                  <div className={`flex items-center justify-between border-b pb-2 ${isDark ? 'border-slate-800' : 'border-[#E2E8F0]'}`}>
+                    <span className="text-xs font-semibold uppercase text-[#64748B]">Resumo da Solicitação</span>
+                    <span className="text-xs font-mono text-amber-600 font-semibold">STATUS: PENDENTE</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                     <div>
-                      <p className="text-[9px] font-bold uppercase opacity-60">Nome Completo</p>
-                      <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeBrokerData.name}</p>
+                      <p className="text-[10px] font-medium uppercase text-[#64748B]">Nome Completo</p>
+                      <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-[#1C2B3E]'}`}>{activeBrokerData.name}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase opacity-60">E-mail</p>
-                      <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeBrokerData.email}</p>
+                      <p className="text-[10px] font-medium uppercase text-[#64748B]">E-mail</p>
+                      <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-[#1C2B3E]'}`}>{activeBrokerData.email}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase opacity-60">CPF</p>
-                      <p className="font-mono">{activeBrokerData.cpf || 'Não informado'}</p>
+                      <p className="text-[10px] font-medium uppercase text-[#64748B]">CPF</p>
+                      <p className="font-mono text-slate-700">{activeBrokerData.cpf || 'Não informado'}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase opacity-60">Telefone</p>
-                      <p className="font-mono">{activeBrokerData.phone || 'Não informado'}</p>
+                      <p className="text-[10px] font-medium uppercase text-[#64748B]">Telefone</p>
+                      <p className="font-mono text-slate-700">{activeBrokerData.phone || 'Não informado'}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase opacity-60">CRECI</p>
-                      <p className="font-mono text-emerald-500 font-bold">{activeBrokerData.creci || 'Em validação'}</p>
+                      <p className="text-[10px] font-medium uppercase text-[#64748B]">CRECI</p>
+                      <p className="font-mono text-[#0284C7] font-semibold">{activeBrokerData.creci || 'Em validação'}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-bold uppercase opacity-60">Imobiliária</p>
-                      <p className="font-semibold">{activeBrokerData.imobiliaria || 'Parceira'}</p>
+                      <p className="text-[10px] font-medium uppercase text-[#64748B]">Imobiliária</p>
+                      <p className="font-medium text-slate-700">{activeBrokerData.imobiliaria || 'Parceira'}</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* GUIDANCE NOTE */}
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-xs text-amber-500/90 text-left flex items-start gap-2 leading-relaxed">
-                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <p>
-                  <strong>Importante:</strong> Assim que a gerência validar o seu CRECI e liberar o acesso, você receberá o direito de uso completo de todas as calculadoras e simulações Pro-Soluto Direto.
+              <div className="bg-amber-50 border border-amber-200/80 rounded-2xl p-3.5 text-xs text-amber-800 text-left flex items-start gap-2.5 leading-relaxed">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="font-normal">
+                  <strong className="font-semibold">Importante:</strong> Assim que a gerência validar o seu CRECI e liberar o acesso, você receberá a permissão para criar e exportar simulações.
                 </p>
               </div>
 
@@ -733,8 +747,8 @@ export const AuthTab: React.FC<AuthTabProps> = ({
               <button
                 type="button"
                 onClick={() => setCurrentView('login')}
-                className={`w-full py-2.5 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
-                  isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                className={`w-full py-3 font-medium text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all cursor-pointer border ${
+                  isDark ? 'bg-slate-700 hover:bg-slate-600 text-white border-slate-600' : 'bg-[#F1F5F9] hover:bg-slate-200 text-[#1C2B3E] border-[#E2E8F0]'
                 }`}
               >
                 Voltar para a Tela de Login
@@ -743,55 +757,71 @@ export const AuthTab: React.FC<AuthTabProps> = ({
           )}
 
           {/* ========================================================================= */}
-          {/* TELA 4: CADASTRO APROVADO */}
+          {/* TELA 2: ACESSO AUTORIZADO */}
           {/* ========================================================================= */}
           {currentView === 'approved' && (
             <div className="space-y-4 text-center animate-fade-in">
               {/* CHECK ICON */}
               <div
-                className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto shadow-lg border ${
-                  isDark ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-emerald-100 border-emerald-300'
+                className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto border transition-colors ${
+                  isDark
+                    ? 'bg-sky-500/15 border-sky-500/30 text-sky-400'
+                    : 'bg-[#E0F2FE] border-[#BAE6FD] text-[#0284C7]'
                 }`}
               >
-                <CheckCircle2 className={`w-7 h-7 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                <CheckCircle2 className="w-7 h-7" />
               </div>
 
               <div>
-                <span className="inline-block px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 font-bold text-[10px] uppercase tracking-widest rounded-full mb-1.5">
+                <span
+                  className={`inline-block px-3.5 py-1 font-medium text-[11px] uppercase tracking-wider rounded-full mb-2 border ${
+                    isDark
+                      ? 'bg-sky-500/15 border-sky-500/30 text-sky-300'
+                      : 'bg-[#E0F2FE] border-[#BAE6FD] text-[#0369a1]'
+                  }`}
+                >
                   CRECI Validado & Ativo
                 </span>
-                <h2 className={`text-lg font-black uppercase tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Acesso Autorizado!
+                <h2 className={`text-xl font-semibold uppercase tracking-tight ${isDark ? 'text-white' : 'text-[#1C2B3E]'}`}>
+                  ACESSO AUTORIZADO!
                 </h2>
-                <p className={`text-xs max-w-sm mx-auto mt-0.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                  Bem-vindo ao Portal do Corretor. Seu perfil está totalmente habilitado para criar e exportar simulações Pro-Soluto.
+                <p className={`text-xs sm:text-sm font-normal max-w-sm mx-auto mt-1.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-[#64748B]'}`}>
+                  Bem-vindo à CALAZANS IMOB - Soluções Imobiliárias. Seu perfil está totalmente habilitado para criar e exportar simulações.
                 </p>
               </div>
 
-              {/* PROFILE CARD */}
-              {activeBrokerData && (
-                <div
-                  className={`rounded-2xl p-3.5 text-left space-y-2 text-xs border ${
-                    isDark ? 'bg-slate-900/80 border-emerald-500/30' : 'bg-emerald-50/50 border-emerald-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center font-black text-white text-sm">
-                      {activeBrokerData.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className={`font-bold text-xs ${isDark ? 'text-white' : 'text-slate-900'}`}>{activeBrokerData.name}</h3>
-                      <p className="text-[11px] text-emerald-600 font-semibold">{activeBrokerData.email}</p>
-                    </div>
+              {/* USER CARD */}
+              <div
+                className={`rounded-2xl p-4 text-left border transition-all ${
+                  isDark
+                    ? 'bg-slate-900/80 border-sky-500/30'
+                    : 'bg-[#F0F9FF] border-[#E0F2FE]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#0284C7] rounded-full flex items-center justify-center font-medium text-white text-base shrink-0">
+                    {(activeBrokerData?.name || currentUser?.name || 'Rafael Calazans').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="overflow-hidden">
+                    <h3 className={`font-semibold text-xs sm:text-sm truncate ${isDark ? 'text-white' : 'text-[#1C2B3E]'}`}>
+                      {activeBrokerData?.name || currentUser?.name || 'Rafael Calazans'}
+                    </h3>
+                    <p className="text-xs font-normal text-[#0369a1] truncate">
+                      {activeBrokerData?.email || currentUser?.email || 'calazansvendas@gmail.com'}
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* ACTION: ACESSAR PAINEL */}
               <button
                 type="button"
                 onClick={handleEnterDashboard}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs tracking-wider uppercase rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className={`w-full py-3.5 border font-semibold text-xs sm:text-sm tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 ${
+                  isDark
+                    ? 'bg-sky-500/15 hover:bg-sky-500/25 border-sky-500/30 text-sky-300'
+                    : 'bg-[#E0F2FE] hover:bg-sky-200/80 active:bg-sky-300/80 border-[#BAE6FD] text-[#0284C7]'
+                }`}
               >
                 <span>Acessar Painel Principal</span>
                 <ArrowRight className="w-4 h-4" />

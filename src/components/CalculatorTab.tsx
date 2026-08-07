@@ -29,7 +29,7 @@ import {
   parseBRLInput,
   runFinancialSimulation,
 } from '../utils/financialCalculations';
-import { getStoredAuditLogs, getTaxaForPrazo } from '../services/storageService';
+import { getStoredAuditLogs, getTaxaForPrazo, INITIAL_DEVELOPMENTS } from '../services/storageService';
 
 interface CalculatorTabProps {
   input: SimulationInput;
@@ -64,9 +64,10 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
 
   const canEditTaxa = userRole === 'admin' || userRole === 'gerente';
 
-  const activeDevelopments = developments.filter((d) => d.status === 'ativo');
+  const availableDevelopments = developments && developments.length > 0 ? developments : INITIAL_DEVELOPMENTS;
+  const activeDevelopments = availableDevelopments.filter((d) => d.status === 'ativo');
 
-  const selectedDev = developments.find((d) => d.nome === input.empreendimento);
+  const selectedDev = availableDevelopments.find((d) => d.nome === input.empreendimento);
 
   const getMaxPrazoForDev = (dev?: Development): number => {
     if (!dev) return 360;

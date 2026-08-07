@@ -53,15 +53,18 @@ export function getStoredDevelopments(): Development[] {
     const data = localStorage.getItem(STORAGE_KEYS.DEVELOPMENTS);
     if (data) {
       const parsed: Development[] = JSON.parse(data);
-      return parsed.map((dev) => ({
-        ...dev,
-        faixa1: dev.faixa1 || { ateMeses: 36, taxaJurosPct: 1.5 },
-        faixa2: dev.faixa2 || { ateMeses: 60, taxaJurosPct: 2.2 },
-      }));
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((dev) => ({
+          ...dev,
+          faixa1: dev.faixa1 || { ateMeses: 36, taxaJurosPct: 1.5 },
+          faixa2: dev.faixa2 || { ateMeses: 60, taxaJurosPct: 2.2 },
+        }));
+      }
     }
   } catch (e) {
     console.error('Failed to read developments', e);
   }
+  saveDevelopments(INITIAL_DEVELOPMENTS);
   return INITIAL_DEVELOPMENTS;
 }
 

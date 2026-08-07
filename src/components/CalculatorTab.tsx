@@ -203,7 +203,7 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
   // Quick preset loader for testing
   const loadExample70k = () => {
     const example: SimulationInput = {
-      empreendimento: 'Residencial Morar',
+      empreendimento: 'ARVOREDO (SERRA / ES)',
       proSolutoValor: 70000,
       aliquotaDiretoPct: 0.2,
       taxaDiretoValor: calculateTaxaDiretoAmount(70000, 0.2),

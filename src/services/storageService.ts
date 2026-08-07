@@ -11,40 +11,49 @@ const STORAGE_KEYS = {
 
 export const INITIAL_DEVELOPMENTS: Development[] = [
   {
-    id: 'dev-1',
-    nome: 'Residencial Morar',
-    cidade: 'Vitória - ES',
+    id: 'dev-arvoredo',
+    nome: 'ARVOREDO (SERRA / ES)',
+    cidade: 'Serra - ES',
     status: 'ativo',
     createdAt: new Date().toISOString(),
     faixa1: { ateMeses: 36, taxaJurosPct: 1.5 },
-    faixa2: { ateMeses: 60, taxaJurosPct: 2.2 },
+    faixa2: { ateMeses: 60, taxaJurosPct: 1.9 },
   },
   {
-    id: 'dev-2',
-    nome: 'Morar Prime Residence',
+    id: 'dev-tropical',
+    nome: 'TROPICAL (SERRA / ES)',
+    cidade: 'Serra - ES',
+    status: 'ativo',
+    createdAt: new Date().toISOString(),
+    faixa1: { ateMeses: 36, taxaJurosPct: 1.5 },
+    faixa2: { ateMeses: 60, taxaJurosPct: 1.9 },
+  },
+  {
+    id: 'dev-colina',
+    nome: 'COLINA (VILA VELHA / ES)',
     cidade: 'Vila Velha - ES',
     status: 'ativo',
     createdAt: new Date().toISOString(),
     faixa1: { ateMeses: 36, taxaJurosPct: 1.4 },
-    faixa2: { ateMeses: 60, taxaJurosPct: 1.9 },
+    faixa2: { ateMeses: 60, taxaJurosPct: 1.8 },
   },
   {
-    id: 'dev-3',
-    nome: 'Loteamento Alpha Morar',
+    id: 'dev-aracas',
+    nome: 'ARAÇÁS (VILA VELHA / ES)',
+    cidade: 'Vila Velha - ES',
+    status: 'ativo',
+    createdAt: new Date().toISOString(),
+    faixa1: { ateMeses: 36, taxaJurosPct: 1.4 },
+    faixa2: { ateMeses: 60, taxaJurosPct: 1.8 },
+  },
+  {
+    id: 'dev-passeio',
+    nome: 'PASSEIO (SERRA / ES)',
     cidade: 'Serra - ES',
     status: 'ativo',
     createdAt: new Date().toISOString(),
-    faixa1: { ateMeses: 36, taxaJurosPct: 1.6 },
-    faixa2: { ateMeses: 60, taxaJurosPct: 2.4 },
-  },
-  {
-    id: 'dev-4',
-    nome: 'Eco Viana Residence',
-    cidade: 'Viana - ES',
-    status: 'pausado',
-    createdAt: new Date().toISOString(),
     faixa1: { ateMeses: 36, taxaJurosPct: 1.5 },
-    faixa2: { ateMeses: 60, taxaJurosPct: 2.0 },
+    faixa2: { ateMeses: 60, taxaJurosPct: 1.9 },
   },
 ];
 
@@ -54,18 +63,27 @@ export function getStoredDevelopments(): Development[] {
     if (data && data.trim() !== '' && data !== '[]' && data !== 'null') {
       const parsed: Development[] = JSON.parse(data);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((dev) => ({
-          ...dev,
-          faixa1: dev.faixa1 || { ateMeses: 36, taxaJurosPct: 1.5 },
-          faixa2: dev.faixa2 || { ateMeses: 60, taxaJurosPct: 2.2 },
-        }));
+        const hasMorarDevs = parsed.some((d) =>
+          d.nome.includes('ARVOREDO') ||
+          d.nome.includes('TROPICAL') ||
+          d.nome.includes('COLINA') ||
+          d.nome.includes('ARAÇÁS') ||
+          d.nome.includes('PASSEIO')
+        );
+        if (hasMorarDevs) {
+          return parsed.map((dev) => ({
+            ...dev,
+            faixa1: dev.faixa1 || { ateMeses: 36, taxaJurosPct: 1.5 },
+            faixa2: dev.faixa2 || { ateMeses: 60, taxaJurosPct: 1.9 },
+          }));
+        }
       }
     }
   } catch (e) {
     console.error('Failed to read developments from localStorage:', e);
   }
 
-  // Seed default developments if empty or missing
+  // Seed default Morar developments if empty, missing or legacy
   saveDevelopments(INITIAL_DEVELOPMENTS);
   return INITIAL_DEVELOPMENTS;
 }

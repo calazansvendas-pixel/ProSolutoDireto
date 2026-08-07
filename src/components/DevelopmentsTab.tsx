@@ -12,14 +12,18 @@ import {
   XCircle,
   Save,
   Lock,
+  ShieldAlert,
 } from 'lucide-react';
-import { Development } from '../types';
+import { Development, UserProfile } from '../types';
+import { getStoredUserProfile } from '../services/storageService';
 
 interface DevelopmentsTabProps {
   developments: Development[];
   setDevelopments: React.Dispatch<React.SetStateAction<Development[]>>;
   onSaveDevelopments: (list: Development[]) => void;
   userRole?: string;
+  currentUser?: UserProfile;
+  onNavigateToCalc?: () => void;
 }
 
 export const DevelopmentsTab: React.FC<DevelopmentsTabProps> = ({
@@ -27,6 +31,8 @@ export const DevelopmentsTab: React.FC<DevelopmentsTabProps> = ({
   setDevelopments,
   onSaveDevelopments,
   userRole = 'corretor',
+  currentUser,
+  onNavigateToCalc,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,6 +45,50 @@ export const DevelopmentsTab: React.FC<DevelopmentsTabProps> = ({
   const [faixa2Taxa, setFaixa2Taxa] = useState<number>(2.2);
   const [showSuccessMsg, setShowSuccessMsg] = useState(false);
   const [successText, setSuccessText] = useState('Empreendimento cadastrado com sucesso!');
+
+  const userProfile = currentUser || getStoredUserProfile();
+  const isAdmin =
+    userRole === 'admin' ||
+    userRole === 'administrador' ||
+    userProfile?.role === 'admin' ||
+    userProfile?.role === 'administrador' ||
+    (userProfile as any)?.perfil === 'Administrador' ||
+    (userProfile as any)?.perfil?.toLowerCase() === 'administrador' ||
+    (userProfile as any)?.perfil?.toLowerCase() === 'admin' ||
+    userProfile?.isMainAdmin === true ||
+    userProfile?.email === 'carlos.admin@morar.com.br';
+
+  if (!isAdmin) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6 bg-slate-50 min-h-[500px]">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 shadow-xl p-8 text-center flex flex-col items-center">
+          <div className="w-16 h-16 bg-sky-50 border border-sky-200/80 rounded-2xl flex items-center justify-center mb-5 text-[#0284C7] shadow-xs">
+            <Lock className="w-8 h-8 text-[#0284C7]" />
+          </div>
+          <h2 className="text-xl font-black text-[#1C2B3E] tracking-tight">
+            Gestão Restrita ao Administrador
+          </h2>
+          <p className="text-sm text-slate-600 mt-2 mb-6 leading-relaxed font-sans">
+            A inclusão, edição e exclusão de empreendimentos é de uso exclusivo da gestão.
+          </p>
+          <button
+            onClick={() => {
+              if (onNavigateToCalc) {
+                onNavigateToCalc();
+              } else {
+                window.location.hash = '#/calculator';
+              }
+            }}
+            aria-label="Voltar às Simulações"
+            className="w-full py-3 px-5 bg-[#0284C7] hover:bg-[#0284C7]/90 active:bg-[#0284C7]/80 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-sky-600/20 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <ShieldAlert className="w-4 h-4" />
+            Voltar às Simulações
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const canEditTaxa = userRole === 'admin' || userRole === 'gerente';
 

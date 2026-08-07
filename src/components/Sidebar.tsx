@@ -60,18 +60,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       description: 'Simulação de Amortização',
     },
     {
-      id: 'developments' as NavigationTab,
-      label: 'Empreendimentos',
-      icon: Building,
-      description: 'Gestão da Lista de Imóveis',
-    },
-    {
-      id: 'audit' as NavigationTab,
-      label: 'Relatórios / Auditoria',
-      icon: BarChart3,
-      description: 'Histórico & Logs de Acesso',
-    },
-    {
       id: 'pitch' as NavigationTab,
       label: 'Gerador de Pitch',
       icon: MessageSquare,
@@ -80,7 +68,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   if (isAdmin) {
+    navItems.splice(1, 0, {
+      id: 'developments' as NavigationTab,
+      label: 'Empreendimentos',
+      icon: Building,
+      description: 'Gestão da Lista de Imóveis',
+    });
     navItems.push(
+      {
+        id: 'audit' as NavigationTab,
+        label: 'Relatórios / Auditoria',
+        icon: BarChart3,
+        description: 'Histórico & Logs de Acesso',
+      },
       {
         id: 'users' as NavigationTab,
         label: 'Gestão de Usuários',

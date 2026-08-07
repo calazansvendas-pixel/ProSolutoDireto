@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart3,
   Search,
@@ -11,19 +11,72 @@ import {
   Filter,
   CheckCircle2,
   Trash2,
+  Calculator as CalcIcon,
+  MessageSquare,
+  Lock,
+  ShieldAlert,
 } from 'lucide-react';
-import { AuditLogItem, SimulationInput } from '../types';
+import { AuditLogItem, SimulationInput, UserProfile } from '../types';
 import { formatBRL } from '../utils/financialCalculations';
-import { clearAllStoredAuditLogs, deleteStoredAuditLog, getStoredAuditLogs } from '../services/storageService';
+import { clearAllStoredAuditLogs, deleteStoredAuditLog, getStoredAuditLogs, getStoredUserProfile } from '../services/storageService';
 
 interface AuditReportsTabProps {
   onLoadSimulation: (input: SimulationInput) => void;
+  currentUser?: UserProfile;
 }
 
-export const AuditReportsTab: React.FC<AuditReportsTabProps> = ({ onLoadSimulation }) => {
+export const AuditReportsTab: React.FC<AuditReportsTabProps> = ({ onLoadSimulation, currentUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [logs, setLogs] = useState<AuditLogItem[]>(getStoredAuditLogs());
+  const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [roleFilter, setRoleFilter] = useState<string>('todos');
+
+  const userProfile = currentUser || getStoredUserProfile();
+  const isAdmin =
+    userProfile?.role === 'admin' ||
+    userProfile?.role === 'administrador' ||
+    (userProfile as any)?.perfil === 'Administrador' ||
+    (userProfile as any)?.perfil?.toLowerCase() === 'administrador' ||
+    (userProfile as any)?.perfil?.toLowerCase() === 'admin' ||
+    userProfile?.isMainAdmin === true ||
+    userProfile?.email === 'carlos.admin@morar.com.br';
+
+  // Sync and load logs from localStorage on mount and key checks
+  const refreshLogs = () => {
+    const loadedLogs = getStoredAuditLogs();
+    setLogs(loadedLogs);
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      refreshLogs();
+    }
+  }, [isAdmin]);
+
+  if (!isAdmin) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-6 bg-slate-50 min-h-[500px]">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200 shadow-xl p-8 text-center flex flex-col items-center">
+          <div className="w-16 h-16 bg-amber-50 border border-amber-200/80 rounded-2xl flex items-center justify-center mb-5 text-amber-600 shadow-xs">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">Acesso Restrito</h2>
+          <p className="text-sm text-slate-600 mt-2 mb-6 leading-relaxed">
+            Esta área de relatórios e auditoria é exclusiva para <strong>Administradores</strong> do sistema.
+          </p>
+          <button
+            onClick={() => {
+              window.location.hash = '#/calculator';
+            }}
+            aria-label="Voltar ao Painel Principal"
+            className="w-full py-3 px-5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm rounded-xl transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <ShieldAlert className="w-4 h-4" />
+            Voltar ao Painel Principal
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleDeleteLog = (id: string) => {
     deleteStoredAuditLog(id);
@@ -32,23 +85,62 @@ export const AuditReportsTab: React.FC<AuditReportsTabProps> = ({ onLoadSimulati
 
   const handleClearAllLogs = () => {
     if (logs.length === 0) return;
-    if (window.confirm('Tem certeza que deseja apagar todo o histórico de simulações?')) {
+    if (window.confirm('Tem certeza que deseja apagar todo o histórico de simulações e registros?')) {
       clearAllStoredAuditLogs();
       setLogs([]);
     }
   };
 
   const filteredLogs = logs.filter((log) => {
+    const searchClean = searchTerm.trim().toLowerCase();
     const matchesSearch =
-      log.empreendimento.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.usuarioNome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.acao.toLowerCase().includes(searchTerm.toLowerCase());
+      searchClean === '' ||
+      (log.empreendimento || '').toLowerCase().includes(searchClean) ||
+      (log.usuarioNome || '').toLowerCase().includes(searchClean) ||
+      (log.acao || '').toLowerCase().includes(searchClean);
 
+    const roleClean = roleFilter.trim().toLowerCase();
     const matchesRole =
-      roleFilter === 'todos' || log.usuarioRole.toLowerCase().includes(roleFilter.toLowerCase());
+      roleClean === 'todos' ||
+      roleClean === '' ||
+      (log.usuarioRole || '').toLowerCase().includes(roleClean);
 
     return matchesSearch && matchesRole;
   });
+
+  const renderActionPill = (acao: string) => {
+    const acaoLower = (acao || '').toLowerCase();
+    if (acaoLower.includes('calculou') || acaoLower.includes('simula')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200/80 shadow-2xs">
+          <CalcIcon className="w-3 h-3 text-blue-600" />
+          {acao}
+        </span>
+      );
+    }
+    if (acaoLower.includes('pitch') || acaoLower.includes('export')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200/80 shadow-2xs">
+          <MessageSquare className="w-3 h-3 text-emerald-600" />
+          {acao}
+        </span>
+      );
+    }
+    if (acaoLower.includes('login') || acaoLower.includes('autentic')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200/80 shadow-2xs">
+          <CheckCircle2 className="w-3 h-3 text-indigo-600" />
+          {acao}
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200 shadow-2xs">
+        <ShieldCheck className="w-3 h-3 text-slate-600" />
+        {acao}
+      </span>
+    );
+  };
 
   const exportAuditCSV = () => {
     const headers = [
@@ -192,10 +284,7 @@ export const AuditReportsTab: React.FC<AuditReportsTabProps> = ({ onLoadSimulati
                       <div className="text-[9px] text-slate-500 uppercase">{log.usuarioRole}</div>
                     </td>
                     <td className="py-3 px-4 font-sans">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] bg-blue-100/40 text-blue-600 border border-blue-200/50 font-bold backdrop-blur-xs">
-                        <CheckCircle2 className="w-3 h-3 text-blue-600" />
-                        {log.acao}
-                      </span>
+                      {renderActionPill(log.acao)}
                     </td>
                     <td className="py-3 px-4 font-sans">
                       <div className="font-medium text-slate-900">{log.empreendimento}</div>

@@ -22,7 +22,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { UserProfile } from '../types';
-import { saveUserProfile, getStoredThemeMode, saveThemeMode } from '../services/storageService';
+import { saveUserProfile, getStoredThemeMode, saveThemeMode, saveAuditLog } from '../services/storageService';
 import {
   authenticateUserAsync,
   registerPublicUserAsync,
@@ -188,6 +188,17 @@ export const AuthTab: React.FC<AuthTabProps> = ({
         setCurrentUser(userProfile);
         saveUserProfile(userProfile);
         setActiveBrokerData(userProfile);
+
+        // Record audit log for login
+        saveAuditLog({
+          usuarioNome: userProfile.name || 'Usuário Autenticado',
+          usuarioRole: userProfile.role === 'admin' ? 'Administrador' : userProfile.role === 'gerente' ? 'Gerente' : 'Corretor',
+          acao: 'Login Realizado',
+          empreendimento: userProfile.empreendimentoPadrao || 'Morar Imóveis',
+          proSolutoValor: 0,
+          aporteValor: 0,
+          economiaEstimada: 0,
+        });
 
         showToast(`Bem-vindo, ${userProfile.name}! Acesso autorizado.`, 'success');
         

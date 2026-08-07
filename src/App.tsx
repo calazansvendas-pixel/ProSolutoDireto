@@ -58,15 +58,36 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const handleTabSelect = (tab: NavigationTab) => {
-    setActiveTab(tab);
-    window.location.hash = `#/${tab}`;
-  };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile>(getStoredUserProfile);
   const [input, setInput] = useState<SimulationInput>(DEFAULT_INITIAL_INPUT);
   const [hasCalculated, setHasCalculated] = useState(false);
   const [developments, setDevelopments] = useState<Development[]>(getStoredDevelopments);
+
+  const isAdmin =
+    currentUser.role === 'admin' ||
+    currentUser.role === 'administrador' ||
+    (currentUser as any).perfil === 'Administrador' ||
+    (currentUser as any).perfil?.toLowerCase() === 'administrador' ||
+    (currentUser as any).perfil?.toLowerCase() === 'admin' ||
+    currentUser.isMainAdmin === true ||
+    currentUser.email === 'carlos.admin@morar.com.br';
+
+  const handleTabSelect = (tab: NavigationTab) => {
+    if ((tab === 'audit' || tab === 'users' || tab === 'auth') && !isAdmin) {
+      setActiveTab('calculator');
+      window.location.hash = '#/calculator';
+      return;
+    }
+    setActiveTab(tab);
+    window.location.hash = `#/${tab}`;
+  };
+
+  useEffect(() => {
+    if (activeTab === 'audit' && !isAdmin) {
+      handleTabSelect('calculator');
+    }
+  }, [activeTab, isAdmin]);
 
   useEffect(() => {
     document.documentElement.classList.remove('dark');
@@ -242,6 +263,8 @@ export default function App() {
                 setDevelopments={setDevelopments}
                 onSaveDevelopments={saveDevelopments}
                 userRole={currentUser.role}
+                currentUser={currentUser}
+                onNavigateToCalc={() => handleTabSelect('calculator')}
               />
             )}
 
@@ -257,7 +280,7 @@ export default function App() {
             )}
 
             {activeTab === 'audit' && (
-              <AuditReportsTab onLoadSimulation={handleLoadSimulation} />
+              <AuditReportsTab onLoadSimulation={handleLoadSimulation} currentUser={currentUser} />
             )}
 
             {activeTab === 'auth' && (

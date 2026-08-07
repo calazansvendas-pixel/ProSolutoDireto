@@ -3,6 +3,7 @@ import { formatBRL, formatPercent } from '../utils/financialCalculations';
 
 const STORAGE_KEYS = {
   AUDIT_LOGS: 'prosoluto_audit_logs',
+  SIMULATIONS: 'prosoluto_simulations',
   LAST_SIMULATION: 'prosoluto_last_sim',
   USER_PROFILE: 'prosoluto_user_profile',
   THEME_MODE: 'prosoluto_theme_mode',
@@ -216,46 +217,108 @@ Vamos garantir essa economia hoje mesmo?`,
 
 export function getStoredAuditLogs(): AuditLogItem[] {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS);
-    if (data) return JSON.parse(data);
+    const rawLogs =
+      (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) : null) ||
+      (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.SIMULATIONS) : null);
+
+    if (rawLogs && rawLogs.trim() !== '') {
+      const parsed = JSON.parse(rawLogs);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
   } catch (e) {
-    console.error('Failed to read audit logs', e);
+    console.error('Failed to read audit logs from localStorage:', e);
   }
+
+  // Fallback initial logs if localStorage is empty or missing
+  try {
+    if (typeof window !== 'undefined') {
+      const jsonStr = JSON.stringify(INITIAL_AUDIT_LOGS);
+      localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, jsonStr);
+      localStorage.setItem(STORAGE_KEYS.SIMULATIONS, jsonStr);
+    }
+  } catch (e) {
+    console.error('Failed to initialize audit logs in localStorage:', e);
+  }
+
   return INITIAL_AUDIT_LOGS;
 }
 
 export function saveAuditLog(logData: Omit<AuditLogItem, 'id' | 'timestamp'>): AuditLogItem {
+  const user = getStoredUserProfile();
   const newLog: AuditLogItem = {
     ...logData,
-    id: `log-${Date.now()}`,
+    id: `log-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     timestamp: new Date().toISOString(),
+    usuarioNome: logData.usuarioNome || user?.name || 'Usuário Atual',
+    usuarioRole: logData.usuarioRole || user?.role || 'Corretor',
+    empreendimento: logData.empreendimento || 'Morar Imóveis',
+    proSolutoValor: typeof logData.proSolutoValor === 'number' ? logData.proSolutoValor : 0,
+    aporteValor: typeof logData.aporteValor === 'number' ? logData.aporteValor : 0,
+    economiaEstimada: typeof logData.economiaEstimada === 'number' ? logData.economiaEstimada : 0,
   };
 
   const logs = getStoredAuditLogs();
-  const updated = [newLog, ...logs];
+  const updated = [newLog, ...logs].slice(0, 200);
+
   try {
-    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(updated.slice(0, 100)));
+    if (typeof window !== 'undefined') {
+      const jsonStr = JSON.stringify(updated);
+      localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, jsonStr);
+      localStorage.setItem(STORAGE_KEYS.SIMULATIONS, jsonStr);
+    }
   } catch (e) {
-    console.error('Failed to save audit log', e);
+    console.error('Failed to save audit log:', e);
   }
+
   return newLog;
+}
+
+export function saveSimulation(data: {
+  usuarioNome?: string;
+  usuarioRole?: string;
+  empreendimento?: string;
+  proSolutoValor?: number;
+  aporteValor?: number;
+  economiaEstimada?: number;
+  inputSnapshot?: SimulationInput;
+  acao?: string;
+}): AuditLogItem {
+  return saveAuditLog({
+    usuarioNome: data.usuarioNome || '',
+    usuarioRole: data.usuarioRole || '',
+    acao: data.acao || 'Calculou Amortização',
+    empreendimento: data.empreendimento || 'Morar Imóveis',
+    proSolutoValor: data.proSolutoValor || 0,
+    aporteValor: data.aporteValor || 0,
+    economiaEstimada: data.economiaEstimada || 0,
+    inputSnapshot: data.inputSnapshot,
+  });
 }
 
 export function deleteStoredAuditLog(id: string): void {
   try {
     const logs = getStoredAuditLogs();
     const updated = logs.filter((log) => log.id !== id);
-    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(updated));
+    if (typeof window !== 'undefined') {
+      const jsonStr = JSON.stringify(updated);
+      localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, jsonStr);
+      localStorage.setItem(STORAGE_KEYS.SIMULATIONS, jsonStr);
+    }
   } catch (e) {
-    console.error('Failed to delete audit log', e);
+    console.error('Failed to delete audit log:', e);
   }
 }
 
 export function clearAllStoredAuditLogs(): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.SIMULATIONS, JSON.stringify([]));
+    }
   } catch (e) {
-    console.error('Failed to clear audit logs', e);
+    console.error('Failed to clear audit logs:', e);
   }
 }
 

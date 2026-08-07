@@ -10,7 +10,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { CalculationResult, PitchTemplate, SimulationInput } from '../types';
-import { buildWhatsAppPitchMessage, DEFAULT_PITCH_TEMPLATES, saveAuditLog } from '../services/storageService';
+import { buildWhatsAppPitchMessage, DEFAULT_PITCH_TEMPLATES, getStoredUserProfile, saveAuditLog } from '../services/storageService';
 
 interface PitchGeneratorTabProps {
   input: SimulationInput;
@@ -41,15 +41,17 @@ export const PitchGeneratorTab: React.FC<PitchGeneratorTabProps> = ({
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
 
+    const currentUser = getStoredUserProfile();
     // Save audit log for WhatsApp pitch export
     saveAuditLog({
-      usuarioNome: 'Usuário Atual',
-      usuarioRole: 'Corretor / Gerente',
-      acao: 'Pitch WhatsApp Copiado',
-      empreendimento: input.empreendimento,
-      proSolutoValor: input.proSolutoValor,
-      aporteValor: input.valorAmortizacaoExtra,
-      economiaEstimada: result.maiorEconomiaReais,
+      usuarioNome: currentUser?.name || 'Usuário Atual',
+      usuarioRole: currentUser?.role || 'Corretor',
+      acao: 'Pitch Exportado',
+      empreendimento: input.empreendimento || 'Morar Imóveis',
+      proSolutoValor: input.proSolutoValor || 0,
+      aporteValor: input.valorAmortizacaoExtra || 0,
+      economiaEstimada: result.maiorEconomiaReais || 0,
+      inputSnapshot: input,
     });
   };
 
@@ -57,14 +59,16 @@ export const PitchGeneratorTab: React.FC<PitchGeneratorTabProps> = ({
     const encoded = encodeURIComponent(compiledMessage);
     window.open(`https://wa.me/?text=${encoded}`, '_blank');
 
+    const currentUser = getStoredUserProfile();
     saveAuditLog({
-      usuarioNome: 'Usuário Atual',
-      usuarioRole: 'Corretor / Gerente',
-      acao: 'WhatsApp Direct Aberto',
-      empreendimento: input.empreendimento,
-      proSolutoValor: input.proSolutoValor,
-      aporteValor: input.valorAmortizacaoExtra,
-      economiaEstimada: result.maiorEconomiaReais,
+      usuarioNome: currentUser?.name || 'Usuário Atual',
+      usuarioRole: currentUser?.role || 'Corretor',
+      acao: 'Pitch Exportado',
+      empreendimento: input.empreendimento || 'Morar Imóveis',
+      proSolutoValor: input.proSolutoValor || 0,
+      aporteValor: input.valorAmortizacaoExtra || 0,
+      economiaEstimada: result.maiorEconomiaReais || 0,
+      inputSnapshot: input,
     });
   };
 

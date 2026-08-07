@@ -29,7 +29,7 @@ import {
   parseBRLInput,
   runFinancialSimulation,
 } from '../utils/financialCalculations';
-import { getStoredAuditLogs, getTaxaForPrazo, INITIAL_DEVELOPMENTS } from '../services/storageService';
+import { getStoredAuditLogs, getStoredUserProfile, getTaxaForPrazo, INITIAL_DEVELOPMENTS, saveSimulation } from '../services/storageService';
 
 interface CalculatorTabProps {
   input: SimulationInput;
@@ -239,6 +239,20 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
 
     setSimulationError(null);
     onRunSimulation();
+
+    // Auto-save simulation into audit logs / simulations history
+    const computedResult = runFinancialSimulation(input);
+    const currentUser = getStoredUserProfile();
+    saveSimulation({
+      usuarioNome: currentUser?.name || 'Usuário Atual',
+      usuarioRole: currentUser?.role || userRole || 'Corretor',
+      empreendimento: input.empreendimento || 'Morar Imóveis',
+      proSolutoValor: input.proSolutoValor,
+      aporteValor: input.valorAmortizacaoExtra,
+      economiaEstimada: computedResult.maiorEconomiaReais,
+      inputSnapshot: input,
+      acao: 'Calculou Amortização',
+    });
   };
 
   const activeCronograma =

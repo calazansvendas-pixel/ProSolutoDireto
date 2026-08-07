@@ -452,24 +452,7 @@ export const AuthTab: React.FC<AuthTabProps> = ({
                 <span>Cadastrar como Corretor</span>
               </button>
 
-              {/* ADMIN QUICK TEST ACCORDION */}
-              <div className={`pt-3 border-t text-center ${isDark ? 'border-slate-700/60' : 'border-slate-200'}`}>
-                <p className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Acesso de demonstração rápida:{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginEmail('carlos.admin@morar.com.br');
-                      setLoginPassword('admin123');
-                    }}
-                    className={`font-bold hover:underline ml-1 cursor-pointer ${
-                      isDark ? 'text-emerald-400' : 'text-emerald-700'
-                    }`}
-                  >
-                    Usar dados do Administrador
-                  </button>
-                </p>
-              </div>
+
             </form>
           )}
 

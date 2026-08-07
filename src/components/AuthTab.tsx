@@ -27,7 +27,6 @@ import {
   authenticateUserAsync,
   registerPublicUserAsync,
 } from '../services/userService';
-import { recordAccessLog } from '../services/accessLogsService';
 
 interface AuthTabProps {
   currentUser: UserProfile;
@@ -190,17 +189,6 @@ export const AuthTab: React.FC<AuthTabProps> = ({
         saveUserProfile(userProfile);
         setActiveBrokerData(userProfile);
 
-        // REGISTRAR LOG DE ACESSO
-        recordAccessLog({
-          userId: userProfile.id || userProfile.uid || 'usr_corretor',
-          userName: userProfile.name,
-          email: userProfile.email,
-          agency: userProfile.imobiliaria || 'Parceira Morar',
-          creci: userProfile.creci || 'Não informado',
-          action: 'LOGIN_SUCCESS',
-          details: `Acesso realizado com sucesso no sistema (${userProfile.role})`,
-        });
-
         showToast(`Bem-vindo, ${userProfile.name}! Acesso autorizado.`, 'success');
         
         // Show Approved view
@@ -237,17 +225,6 @@ export const AuthTab: React.FC<AuthTabProps> = ({
       });
 
       setIsRegLoading(false);
-
-      // REGISTRAR LOG DE SOLICITAÇÃO
-      recordAccessLog({
-        userId: newUser.id || newUser.uid || 'usr_novo',
-        userName: newUser.name,
-        email: newUser.email,
-        agency: regImobiliaria || 'Parceira Morar',
-        creci: regCreci || 'Pendente',
-        action: 'REGISTER_REQUEST',
-        details: 'Solicitação de credenciamento enviada para aprovação do Administrador',
-      });
 
       // Save summary data and advance to Tela 3 (Pendente)
       setActiveBrokerData({

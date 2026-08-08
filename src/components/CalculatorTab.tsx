@@ -196,6 +196,19 @@ export const CalculatorTab: React.FC<CalculatorTabProps> = ({
     const pv = (input.proSolutoValor || 0) + (input.taxaDiretoValor || 0);
     const pmt = calculatePMT(pv, input.taxaJurosMensalPct || 0, input.prazoMeses || 0);
     setCalculatedMonthlyPmt(pmt);
+
+    // Save audit log / simulation history for initial PMT calculation
+    const currentUser = getStoredUserProfile();
+    saveSimulation({
+      usuarioNome: currentUser?.name || 'Usuário Atual',
+      usuarioRole: currentUser?.role || userRole || 'Corretor',
+      empreendimento: input.empreendimento || 'Morar Imóveis',
+      proSolutoValor: input.proSolutoValor || 0,
+      aporteValor: 0,
+      economiaEstimada: 0,
+      inputSnapshot: input,
+      acao: 'Simulação Executada',
+    });
   };
 
   const displayPmt = calculatedMonthlyPmt !== null ? calculatedMonthlyPmt : 0;

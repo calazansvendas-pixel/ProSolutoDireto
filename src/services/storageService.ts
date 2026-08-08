@@ -4,6 +4,7 @@ import { formatBRL, formatPercent } from '../utils/financialCalculations';
 const STORAGE_KEYS = {
   AUDIT_LOGS: 'prosoluto_audit_logs',
   SIMULATIONS: 'prosoluto_simulations',
+  INITIALIZED: 'prosoluto_initialized',
   LAST_SIMULATION: 'prosoluto_last_sim',
   USER_PROFILE: 'prosoluto_user_profile',
   THEME_MODE: 'prosoluto_theme_mode',
@@ -216,33 +217,45 @@ Vamos garantir essa economia hoje mesmo?`,
 ];
 
 export function getStoredAuditLogs(): AuditLogItem[] {
-  try {
-    const rawLogs =
-      (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) : null) ||
-      (typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.SIMULATIONS) : null);
+  if (typeof window === 'undefined') {
+    return INITIAL_AUDIT_LOGS;
+  }
 
+  try {
+    const isInitialized = localStorage.getItem(STORAGE_KEYS.INITIALIZED) === 'true';
+    const rawLogs =
+      localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS) ||
+      localStorage.getItem(STORAGE_KEYS.SIMULATIONS);
+
+    if (isInitialized) {
+      if (rawLogs && rawLogs.trim() !== '') {
+        const parsed = JSON.parse(rawLogs);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+      return [];
+    }
+
+    // First time running application - check if rawLogs exists
     if (rawLogs && rawLogs.trim() !== '') {
       const parsed = JSON.parse(rawLogs);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
+        localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
         return parsed;
       }
     }
+
+    // Initial seed on first ever load
+    const jsonStr = JSON.stringify(INITIAL_AUDIT_LOGS);
+    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, jsonStr);
+    localStorage.setItem(STORAGE_KEYS.SIMULATIONS, jsonStr);
+    localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
+    return INITIAL_AUDIT_LOGS;
   } catch (e) {
     console.error('Failed to read audit logs from localStorage:', e);
+    return [];
   }
-
-  // Fallback initial logs if localStorage is empty or missing
-  try {
-    if (typeof window !== 'undefined') {
-      const jsonStr = JSON.stringify(INITIAL_AUDIT_LOGS);
-      localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, jsonStr);
-      localStorage.setItem(STORAGE_KEYS.SIMULATIONS, jsonStr);
-    }
-  } catch (e) {
-    console.error('Failed to initialize audit logs in localStorage:', e);
-  }
-
-  return INITIAL_AUDIT_LOGS;
 }
 
 export function saveAuditLog(logData: Omit<AuditLogItem, 'id' | 'timestamp'>): AuditLogItem {
@@ -267,6 +280,7 @@ export function saveAuditLog(logData: Omit<AuditLogItem, 'id' | 'timestamp'>): A
       const jsonStr = JSON.stringify(updated);
       localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, jsonStr);
       localStorage.setItem(STORAGE_KEYS.SIMULATIONS, jsonStr);
+      localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
     }
   } catch (e) {
     console.error('Failed to save audit log:', e);
@@ -305,6 +319,7 @@ export function deleteStoredAuditLog(id: string): void {
       const jsonStr = JSON.stringify(updated);
       localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, jsonStr);
       localStorage.setItem(STORAGE_KEYS.SIMULATIONS, jsonStr);
+      localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
     }
   } catch (e) {
     console.error('Failed to delete audit log:', e);
@@ -316,6 +331,7 @@ export function clearAllStoredAuditLogs(): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify([]));
       localStorage.setItem(STORAGE_KEYS.SIMULATIONS, JSON.stringify([]));
+      localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
     }
   } catch (e) {
     console.error('Failed to clear audit logs:', e);
